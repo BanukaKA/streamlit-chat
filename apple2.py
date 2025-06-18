@@ -1,6 +1,7 @@
 import streamlit as st
 import openai
 import requests
+import os
 
 # Configure the page
 st.set_page_config(page_title="GTA Home Finder Chatbot", page_icon="🏡")

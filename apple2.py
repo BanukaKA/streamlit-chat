@@ -11,35 +11,42 @@ openai.api_key = os.getenv("GPT_KEY")
 TRACKING_URL = "https://prod-135.westus.logic.azure.com:443/workflows/de75db0162a241b2a0a23ff81b995b27/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=BGPHxgrgadFKgbmtdF0SWXmhkcLtcz9bAiyzUKGBkYw"  # e.g., a webhook endpoint to collect user info
 
 # Initialize session state
-if 'step' not in st.session_state:
-    st.session_state.step = 'ask_name'
-if 'name' not in st.session_state:
-    st.session_state.name = ''
-if 'email' not in st.session_state:
-    st.session_state.email = ''
-if 'messages' not in st.session_state:
-    st.session_state.messages = []
-if 'loading' not in st.session_state:
-    st.session_state.loading = False
+def init_state():
+    defaults = {
+        'step': 'ask_name',
+        'name': '',
+        'email': '',
+        'messages': [],
+        'loading': False
+    }
+    for key, default in defaults.items():
+        if key not in st.session_state:
+            st.session_state[key] = default
 
-# Function to generate GPT-4o responses
+init_state()
+
+# Function to generate responses via the Responses API (not completions)
 def generate_response(user_input):
-    messages = [
-        {"role": "system", "content": "You are a friendly and persuasive real estate assistant specializing in finding homes in the Greater Toronto Area for users. Encourage them with benefits and detailed suggestions."},
-        {"role": "system", "content": f"User name: {st.session_state.name}, email: {st.session_state.email}."}
-    ]
-    for msg in st.session_state.messages:
-        role = "user" if msg["sender"] == "user" else "assistant"
-        messages.append({"role": role, "content": msg["text"]})
-    messages.append({"role": "user", "content": user_input})
-
-    response = openai.ChatCompletion.create(
-        model="gpt-4o",
-        messages=messages,
-        temperature=0.7,
-        max_tokens=500
+    # System instructions
+    instructions = (
+        "You are a friendly and persuasive real estate assistant specializing in finding homes in the "
+        "Greater Toronto Area for users. Encourage them with benefits and detailed suggestions."
     )
-    return response.choices[0].message.content.strip()
+    # Build a flat conversation prompt
+    conversation_lines = []
+    for m in st.session_state.messages:
+        speaker = "User" if m["sender"] == "user" else "Assistant"
+        conversation_lines.append(f"{speaker}: {m['text']}")
+    conversation = "\n".join(conversation_lines)
+    prompt = f"{conversation}\nUser: {user_input}\nAssistant:"
+
+    # Call the Responses API instead of chat completions
+    response = client.responses.create(
+        model="gpt-4o",
+        instructions=instructions,
+        input=prompt
+    )
+    return response.output_text.strip()
 
 # App title
 st.title("Find Your Dream Home in the GTA 🏡")
@@ -61,40 +68,45 @@ elif st.session_state.step == 'ask_email':
     if st.button("Submit Email", key="email_submit"):
         if email.strip():
             st.session_state.email = email.strip()
-            # Send name & email to global tracking endpoint
+            # Send tracking data
             if TRACKING_URL:
                 try:
-                    requests.post(TRACKING_URL, json={
-                        "name": st.session_state.name,
-                        "email": st.session_state.email
-                    })
-                except Exception as e:
+                    requests.post(
+                        TRACKING_URL,
+                        json={"name": st.session_state.name, "email": st.session_state.email}
+                    )
+                except Exception:
                     st.error("Failed to send tracking data.")
             st.session_state.step = 'chat'
-            st.session_state.messages.append({"sender": "bot", "text": f"Thanks {st.session_state.name}! I'm here to help you find your perfect home in the Greater Toronto Area. What are you looking for today?"})
+            st.session_state.messages.append({
+                "sender": "bot",
+                "text": f"Thanks {st.session_state.name}! I'm here to help you find your perfect home in the Greater Toronto Area. What are you looking for today?"
+            })
             st.rerun()
         else:
             st.warning("Email cannot be empty.")
 
 # Step 3: Chat interface
 else:
-    # Display conversation with chat bubbles
+    # Render chat history with bubbles
     for msg in st.session_state.messages:
         role = "assistant" if msg["sender"] == "bot" else "user"
         with st.chat_message(role):
             st.write(msg["text"])
 
-    # Input and send controls
-    user_input = st.text_input("Your message:", key="user_input", disabled=st.session_state.loading)
-    send_disabled = st.session_state.loading
-    if st.button("Send", key="send_button", disabled=send_disabled):
+    # User input box and Send button
+    user_input = st.text_input(
+        "Your message:",
+        key="user_input",
+        disabled=st.session_state.loading
+    )
+    if st.button("Send", key="send_button", disabled=st.session_state.loading):
         if user_input.strip():
             st.session_state.loading = True
             st.session_state.messages.append({"sender": "user", "text": user_input.strip()})
-            # Show loading spinner
             with st.spinner("Thinking..."):
-                bot_reply = generate_response(user_input)
-            st.session_state.messages.append({"sender": "bot", "text": bot_reply})
+                reply = generate_response(user_input)
+            st.session_state.messages.append({"sender": "bot", "text": reply})
             st.session_state.loading = False
             st.rerun()
         else:

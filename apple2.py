@@ -42,13 +42,63 @@ def typewriter_effect(text, speed=0.5):
 
 init_state()
 
+
+def search_realtor_listings_serper(query):
+    url = "https://google.serper.dev/search"
+    headers = {
+        "X-API-KEY": st.secrets["SERPER_KEY"],  # Add this to secrets.toml
+        "Content-Type": "application/json"
+    }
+    payload = {
+        "q": f"site:realtor.ca {query}"  # or use realtor.com depending on region
+    }
+    response = requests.post(url, headers=headers, json=payload)
+    results = response.json().get("organic", [])
+    listings = []
+    for result in results[:15]:  # Top 5 results
+        title = result.get("title")
+        link = result.get("link")
+        snippet = result.get("snippet", "")
+        listings.append(f"🏡 [{title}]({link}) — {snippet}")
+    return listings
+
 # Function to generate responses via the Responses API (not completions)
 def generate_response(user_input):
+    listing_text = ""
+    try:
+        listing_text = st.session_state.previous_data
+    except Exception:
+        area = st.session_state.email
+        query = f"homes for sale in {area}"
+        listings = search_realtor_listings_serper(query)
+
+        listing_text = "\n".join(listings) if listings else "Sorry, I couldn't find listings right now."
+        
+        st.session_state.previous_data = listing_text
+        print(listing_text) 
+
     # System instructions
-    instructions = (
-        "You are a friendly and persuasive real estate assistant specializing in finding homes in the "
-        "Greater Toronto Area for users. Encourage them with benefits and detailed suggestions."
-    )
+    
+    instructions = (f"""
+    You are a friendly, engaging, and persuasive real estate assistant helping users find their dream home in the mentioned area in Canada.
+
+    Start by greeting the user by name — {st.session_state.name} — and warmly acknowledge the area and price range they are interested in, as described by their input: "{st.session_state.email}".
+
+    Immediately offer a few hand-picked home suggestions that fit their preferences. Include location, estimated price, and a brief highlight (e.g., “spacious backyard,” “close to transit,” or “luxury kitchen”).
+    Search Results from Realtor.ca try and answer based on these query data:
+    {listing_text}
+    
+    Make the recommendations sound exciting and personalized and provide them with listings from realtor.ca and other real data sources. After listing 3-5 options of houses in detail, continue the conversation by asking if they'd like to:
+    - See more listings,
+    - Narrow down preferences (e.g., number of bedrooms or style), or
+    - Schedule a virtual showing.
+    - Include a real url in each listing
+
+    Keep the tone warm, trustworthy, and enthusiastic. Use persuasive but human-sounding language — like a top-tier agent who’s both knowledgeable and genuinely interested in helping.
+
+    Remember: this is a conversation — not just a static list.
+    Start with a list of properties available in the mentioned area within that. When they show the slightest interest in anything tell them to email Danny Leck at dannyl@salefish.app right now also mantion in in the first message.
+    """)
     # Build a flat conversation prompt
     conversation_lines = []
     for m in st.session_state.messages:
@@ -168,14 +218,15 @@ input, textarea {
 </style>
 """, unsafe_allow_html=True)
 # Step 1: Ask for name
-if st.session_state.step == 'ask_name' and not st.session_state.typed_welcome:
+if not st.session_state.typed_welcome:
     
     typewriter_effect("Welcome to the Canadian realtor AI. Can you please let me know of your name to confirm you got an invite to our brand new application beta ?", speed=0.02)
     st.session_state.typed_welcome = True
 
+if st.session_state.step == 'ask_name':
+
     name = st.text_input("Name here:", key="name_input")
     if st.button("Lets Go", key="name_submit"):
-        print("DEBUG: button fired, name =", repr(name))
         if name:
             st.session_state.name = name
             st.session_state.step = 'ask_email'
@@ -185,8 +236,8 @@ if st.session_state.step == 'ask_name' and not st.session_state.typed_welcome:
 
 # Step 2: Ask for email
 elif st.session_state.step == 'ask_email':
-    email = st.text_input("Please enter your email:")
-    if st.button("Submit Email", key="email_submit"):
+    email = st.text_input("Now can you tell me which areas you are primarily looking for and your expected price range just to make things easier?")
+    if st.button("Start the Conversation", key="email_submit"):
         if email.strip():
             st.session_state.email = email.strip()
             # Send tracking data
@@ -201,7 +252,7 @@ elif st.session_state.step == 'ask_email':
             st.session_state.step = 'chat'
             st.session_state.messages.append({
                 "sender": "bot",
-                "text": f"Thanks {st.session_state.name}! I'm here to help you find your perfect home in the Greater Toronto Area. What are you looking for today?"
+                "text": f"Thanks {st.session_state.name}! Do you want me to start by listing some properties in {st.session_state.email}?"
             })
             st.rerun()
         else:
@@ -217,7 +268,7 @@ else:
 
     # User input box and Send button
     user_input = st.text_input(
-        "Lets start chatting shall we ?",
+        "You:",
         key="user_input",
         disabled=st.session_state.loading
     )
@@ -230,6 +281,7 @@ else:
             st.session_state.messages.append({"sender": "bot", "text": reply})
             st.session_state.loading = False
             st.rerun()
+            user_input = ""
         else:
             st.warning("Please enter a message before sending.")
 

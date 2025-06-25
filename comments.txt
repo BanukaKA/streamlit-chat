@@ -1,0 +1,24 @@
+   """ # Render chat history with bubbles
+    for msg in st.session_state.messages:
+        role = "assistant" if msg["sender"] == "bot" else "user"
+        with st.chat_message(role):
+            st.write(msg["text"])
+
+    # User input box and Send button
+    user_input = st.text_input(
+        "You:",
+        key="user_input",
+        disabled=st.session_state.loading
+    )
+    if st.button("Send", key="send_button", disabled=st.session_state.loading):
+        if user_input.strip():
+            st.session_state.loading = True
+            st.session_state.messages.append({"sender": "user", "text": user_input.strip()})
+            with st.spinner("Thinking..."):
+                reply = generate_response(user_input)
+            st.session_state.messages.append({"sender": "bot", "text": reply})
+            st.session_state.loading = False
+            st.rerun()
+            user_input = ""
+        else:
+            st.warning("Please enter a message before sending.")"""

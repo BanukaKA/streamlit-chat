@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 import random   # (only if you need randomness elsewhere)
 
 # Configure the page
-st.set_page_config(page_title="Canadian Home Finder Chatbot", page_icon="🏡")
+st.set_page_config(page_title="Home Finder Chatbot", page_icon="🏡")
 
 # Set OpenAI API key & Tracking URL (ensure you have added OPENAI_API_KEY and TRACKING_URL to Streamlit secrets)
 key = st.secrets["GPT_KEY"]
@@ -20,6 +20,7 @@ def init_state():
         st.session_state.typed_welcome = False
     if 'step' not in st.session_state:
         st.session_state.step = 'ask_name'
+        st.session_state.step_prev = None
     defaults = {
         'step': 'ask_name',
         'name': '',
@@ -32,15 +33,13 @@ def init_state():
             st.session_state[key] = default
 
 def typewriter_effect(text, speed=0.5):
-    if st.session_state.step == 'ask_name':
-        container = st.empty()
-        output = ""
-        for char in text:
-            output += char
-            container.markdown(f"### {output}")
-            time.sleep(speed)
-    else:
-        pass
+    container = st.empty()
+    output = ""
+    for char in text:
+        output += char
+        container.markdown(f"### {output}")
+        time.sleep(speed)
+
 
 init_state()
 
@@ -241,74 +240,83 @@ input, textarea {
 </style>
 """, unsafe_allow_html=True)
 
-components.html(
-    """
-    <div id="emojiWidget"
-         style="position:fixed; top:80px; left:50%;
-                transform:translateX(-50%);
-                font-size:240px; line-height:1;
-                z-index:2147483647; user-select:none;">
+if st.session_state.step_prev != st.session_state.step:
+    components.html(
+        """
+        <div id="emojiWidget"
+            style="position:fixed; top:80px; left:50%;
+                    transform:translateX(-50%);
+                    font-size:240px; line-height:1;
+                    z-index:2147483647; user-select:none;">
 
-      <!-- talking face -->
-      <span id="face">😀</span>
+        <!-- face -->
+        <span id="face">🙂</span>
 
-      <!-- hands -->
-      <span id="hand1"
-            style="position:absolute; left:-125px; top:46px; font-size:144px;">🤚</span>
-      
-      <!-- simple arrow only -->
-      <span id="arrow"></span>
-    </div>
+        <!-- waving hand -->
+        <span id="hand1"
+                style="position:absolute; left:-125px; top:46px; font-size:144px;">✋</span>
 
-    <style>
-      /* hand wave */
-      @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
-      #hand1,#hand2{animation:wave 3s ease-in-out infinite;}
-      #hand2{animation-delay:1.5s;}
+        <!-- little arrow below -->
+        <span id="arrow"></span>
+        </div>
 
-      /* arrow (triangle) pointing DOWN */
-      #arrow{
-        position:absolute;
-        top:260px;           /* just below the 240 px‑tall face */
-        left:50%; transform:translateX(-50%);
-        width:0; height:0;
-        border-left:24px solid transparent;
-        border-right:24px solid transparent;
-        border-top:24px solid #ffffff;   /* white arrow tip */
-      }
-    </style>
+        <style>
+        /* hand wave */
+        @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
+        #hand1{animation:wave 3s ease-in-out infinite;}
 
-    <script>
-      /* face swap + random hand shuffle */
-      const frames=["🙂","😀"];
-      const hands=["🖐️"];
+        /* arrow */
+        #arrow{
+            position:absolute;
+            top:260px;
+            left:50%; transform:translateX(-50%);
+            width:0; height:0;
+            border-left:24px solid transparent;
+            border-right:24px solid transparent;
+            border-top:24px solid #ffffff;
+        }
+        </style>
 
-      const face=document.getElementById("face"),
-            h1=document.getElementById("hand1"),
-            h2=document.getElementById("hand2");
+        <script>
+        /* frames for talking */
+        const frames = ["🙂","😀"];          // resting, open‑mouth
+        const hands  = ["✋"];    // optional shuffle
 
-      function rand(a){return a[Math.floor(Math.random()*a.length)];}
+        const face  = document.getElementById("face");
+        const hand  = document.getElementById("hand1");
 
-      let f=0;
-      setInterval(()=>{
-        face.textContent=frames[f^=1];     // flip 😃/😮
-        h1.textContent=rand(hands);
-        h2.textContent=rand(hands);
-      },150);   // fast‑talk swap
-    </script>
-    """,
-    height=365,   # iframe occupies no space; widget is fixed
-)
+        /* ---- 3‑second talking burst ---- */
+        function talkFor3s(){
+            let flip = 0;
+            const swap = setInterval(()=>{
+            face.textContent = frames[flip ^= 1];    // flip 0/1
+            hand.textContent = hands[Math.floor(Math.random()*hands.length)];
+            }, 150);
+
+            setTimeout(()=>{
+            clearInterval(swap);
+            face.textContent = frames[0];            // back to resting 🙂
+            }, 1500);                                  // stop after 3 s
+        }
+
+        /* start immediately on load (each rerun) */
+        talkFor3s();
+        </script>
+        """,
+        height=365,
+        scrolling=False
+    )
+st.session_state.step_prev = st.session_state.step
 # Step 1: Ask for name
 if not st.session_state.typed_welcome:
     
-    typewriter_effect("Hi, And welcome to the Canadian realtor AI. What should I call you ?", speed=0.02)
+    typewriter_effect("Hi, And welcome to the Home Finder. What is your name ?", speed=0.02)
     st.session_state.typed_welcome = True
 
 if st.session_state.step == 'ask_name':
 
     name = st.text_input("Your name:", key="name_input")
-    if st.button("Lets Go", key="name_submit"):
+    if st.button("Go", key="name_submit"):
         if name:
             st.session_state.name = name
             st.session_state.step = 'ask_email'
@@ -333,7 +341,7 @@ elif st.session_state.step == 'ask_email':
 elif st.session_state.step == 'ask_more':
     st.markdown("### And lastly, your expected price range to narrow things down a bit more?")
     more = st.text_input("Price Expectation:")
-    if st.button("Start the Conversation", key="email_submit"):
+    if st.button("Next", key="email_submit"):
         if more.strip():
             st.session_state.more = more.strip()
             # Send tracking data
@@ -356,28 +364,6 @@ elif st.session_state.step == 'ask_more':
 
 # Step 3: Chat interface
 else:
-    # Render chat history with bubbles
-    for msg in st.session_state.messages:
-        role = "assistant" if msg["sender"] == "bot" else "user"
-        with st.chat_message(role):
-            st.write(msg["text"])
+   typewriter_effect("Thank You. We will find some options for you and get back to you.", speed=0.02)
 
-    # User input box and Send button
-    user_input = st.text_input(
-        "You:",
-        key="user_input",
-        disabled=st.session_state.loading
-    )
-    if st.button("Send", key="send_button", disabled=st.session_state.loading):
-        if user_input.strip():
-            st.session_state.loading = True
-            st.session_state.messages.append({"sender": "user", "text": user_input.strip()})
-            with st.spinner("Thinking..."):
-                reply = generate_response(user_input)
-            st.session_state.messages.append({"sender": "bot", "text": reply})
-            st.session_state.loading = False
-            st.rerun()
-            user_input = ""
-        else:
-            st.warning("Please enter a message before sending.")
 

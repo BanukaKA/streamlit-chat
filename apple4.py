@@ -4,6 +4,8 @@ import openai
 import requests
 import os
 from openai import OpenAI
+import streamlit.components.v1 as components
+import random   # (only if you need randomness elsewhere)
 
 # Configure the page
 st.set_page_config(page_title="Canadian Home Finder Chatbot", page_icon="🏡")
@@ -41,6 +43,8 @@ def typewriter_effect(text, speed=0.5):
         pass
 
 init_state()
+
+
 
 
 def search_realtor_listings_serper(query):
@@ -215,17 +219,95 @@ input, textarea {
 ::-webkit-scrollbar-track {
     background-color: #2e2e2e;
 }
+                /* Hide top-right hamburger menu (≡) */
+    #MainMenu {
+        visibility: hidden;
+    }
+
+    /* Hide 'Made with Streamlit' footer */
+    footer {
+        visibility: hidden;
+    }
+
+    /* Hide GitHub corner icon (if shown by some deployed themes) */
+    .stApp a[href^="https://github.com"] {
+        display: none;
+    }
+
+    /* Optional: Hide all anchor icons beside headers */
+    h1 > a:first-child, h2 > a:first-child, h3 > a:first-child {
+        display: none;
+    }
 </style>
 """, unsafe_allow_html=True)
+
+components.html(
+    """
+    <div id="emojiWidget"
+         style="position:fixed; top:80px; left:50%;
+                transform:translateX(-50%);
+                font-size:240px; line-height:1;
+                z-index:2147483647; user-select:none;">
+
+      <!-- talking face -->
+      <span id="face">😀</span>
+
+      <!-- hands -->
+      <span id="hand1"
+            style="position:absolute; left:-125px; top:46px; font-size:144px;">🤚</span>
+      
+      <!-- simple arrow only -->
+      <span id="arrow"></span>
+    </div>
+
+    <style>
+      /* hand wave */
+      @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
+      #hand1,#hand2{animation:wave 3s ease-in-out infinite;}
+      #hand2{animation-delay:1.5s;}
+
+      /* arrow (triangle) pointing DOWN */
+      #arrow{
+        position:absolute;
+        top:260px;           /* just below the 240 px‑tall face */
+        left:50%; transform:translateX(-50%);
+        width:0; height:0;
+        border-left:24px solid transparent;
+        border-right:24px solid transparent;
+        border-top:24px solid #ffffff;   /* white arrow tip */
+      }
+    </style>
+
+    <script>
+      /* face swap + random hand shuffle */
+      const frames=["🙂","😀"];
+      const hands=["🖐️"];
+
+      const face=document.getElementById("face"),
+            h1=document.getElementById("hand1"),
+            h2=document.getElementById("hand2");
+
+      function rand(a){return a[Math.floor(Math.random()*a.length)];}
+
+      let f=0;
+      setInterval(()=>{
+        face.textContent=frames[f^=1];     // flip 😃/😮
+        h1.textContent=rand(hands);
+        h2.textContent=rand(hands);
+      },150);   // fast‑talk swap
+    </script>
+    """,
+    height=365,   # iframe occupies no space; widget is fixed
+)
 # Step 1: Ask for name
 if not st.session_state.typed_welcome:
     
-    typewriter_effect("Welcome to the Canadian realtor AI. Can you please let me know of your name to confirm you got an invite to our brand new application beta ?", speed=0.02)
+    typewriter_effect("Hi, And welcome to the Canadian realtor AI. What should I call you ?", speed=0.02)
     st.session_state.typed_welcome = True
 
 if st.session_state.step == 'ask_name':
 
-    name = st.text_input("Name here:", key="name_input")
+    name = st.text_input("Your name:", key="name_input")
     if st.button("Lets Go", key="name_submit"):
         if name:
             st.session_state.name = name
@@ -236,27 +318,41 @@ if st.session_state.step == 'ask_name':
 
 # Step 2: Ask for email
 elif st.session_state.step == 'ask_email':
-    email = st.text_input("Now can you tell me which areas you are primarily looking for and your expected price range just to make things easier?")
-    if st.button("Start the Conversation", key="email_submit"):
+    st.markdown("### Now can you tell me which areas you are primarily looking to buy in?")
+    email = st.text_input("Target Location:")
+    if st.button("Next", key="email_submit"):
         if email.strip():
             st.session_state.email = email.strip()
+            # Send tracking data
+            
+            st.session_state.step = 'ask_more'
+            st.rerun()
+        else:
+            st.warning("Location cannot be empty.")
+# Step 2: Ask for email
+elif st.session_state.step == 'ask_more':
+    st.markdown("### And lastly, your expected price range to narrow things down a bit more?")
+    more = st.text_input("Price Expectation:")
+    if st.button("Start the Conversation", key="email_submit"):
+        if more.strip():
+            st.session_state.more = more.strip()
             # Send tracking data
             if TRACKING_URL:
                 try:
                     requests.post(
                         TRACKING_URL,
-                        json={"name": st.session_state.name, "email": st.session_state.email}
+                        json={"name": st.session_state.name, "email": st.session_state.email + ',' + st.session_state.more}
                     )
                 except Exception:
                     st.error("Failed to send tracking data.")
             st.session_state.step = 'chat'
             st.session_state.messages.append({
                 "sender": "bot",
-                "text": f"Thanks {st.session_state.name}! Do you want me to start by listing some properties in {st.session_state.email}?"
+                "text": f"Thanks {st.session_state.name}! Do you want me to start by listing some properties in {st.session_state.email} around {st.session_state.more}?"
             })
             st.rerun()
         else:
-            st.warning("Email cannot be empty.")
+            st.warning("Price range cannot be empty.")
 
 # Step 3: Chat interface
 else:

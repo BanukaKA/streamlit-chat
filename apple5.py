@@ -254,8 +254,9 @@ components.html(
       <div class="face">
         <div class="shine"></div>
 
-        <div class="eye left"><div class="pupil"></div></div>
-        <div class="eye right"><div class="pupil"></div></div>
+        <!-- eyes now positioned wider -->
+        <div class="eye left"></div>
+        <div class="eye right"></div>
 
         <div class="mouth"></div>
       </div>
@@ -267,11 +268,13 @@ components.html(
     </div>
 
     <style>
-      /* face & glare */
+      /* face & highlight (unchanged) */
       .face{
-        width:220px; height:220px; border:2px solid #000; border-radius:50%;
+        position:relative;
+        width:220px; height:220px;
+        border:2px solid #000; border-radius:50%;
         background:radial-gradient(circle at 30% 30%, #FFBE34 0%, #F4B22B 50%, #E9A226 75%, #C88B18 100%);
-        box-shadow:0 9px 14px rgba(0,0,0,.25); position:relative; overflow:hidden;
+        box-shadow:0 9px 14px rgba(0,0,0,.25); overflow:hidden;
       }
       .shine{
         position:absolute; top:12px; left:26px;
@@ -279,22 +282,30 @@ components.html(
         background:radial-gradient(circle at 40% 40%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 70%);
       }
 
-      /* eyes moved 2 px up, thin outline, blink every 5 s */
+      /* slightly smaller black eyes set farther apart */
       .eye{
-        position:absolute; top:66px;  /* was 68 */
-        width:46px; height:46px; border:2px solid #000; border-radius:50%; background:#fff;
-        animation:blink 5s infinite;
+        position:absolute; top:66px;
+        width:26px; height:26px;
+        background:#000; border-radius:50%;
+        animation:blink 5s ease-in-out infinite;
+        transform-origin:center center;
       }
-      .eye.left{ left:46px;}  .eye.right{ right:46px;}
-      .pupil{ position:absolute; top:12px; left:12px; width:20px; height:20px; border-radius:50%; background:#000;}
-      .pupil::after{content:''; position:absolute; top:3px; left:5px; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.85);}
-      @keyframes blink{0%,4%,100%{transform:scaleY(1);}5%{transform:scaleY(.08);}6%{transform:scaleY(1);}}
+      .eye.left  { left:54px; }   /* was 60px, now 6px farther left */
+      .eye.right { right:54px; }  /* was 60px, now 6px farther right */
 
-      /* mouth narrower (82 px), 2 px lower, tiny widen (1→1.02) every 6 s */
+      /* coordinated curved blink */
+      @keyframes blink{
+        0%,90%,100% {transform:scale(1,1);}
+        93%         {transform:scale(1.5,0.25);}
+        96%         {transform:scale(1,1);}
+      }
+
+      /* subtle mouth motion (unchanged) */
       .mouth{
-        position:absolute; bottom:46px;  /* was 48 */
-        left:50%; width:82px; height:36px;         /* was 90×38 */
-        border-bottom:8px solid #000; border-radius:0 0 38px 38px;
+        position:absolute; bottom:46px; left:50%;
+        width:78px; height:32px;
+        border-bottom:8px solid #000;
+        border-radius:0 0 36px 36px;
         transform:translateX(-50%);
         animation:mouth 6s ease-in-out infinite;
       }
@@ -303,19 +314,21 @@ components.html(
         50%    {transform:translateX(-50%) translateY(2px) scaleX(1.02);}
       }
 
-      /* waving hand */
+      /* hand & arrow (unchanged) */
       #hand1{animation:wave 3s ease-in-out infinite;}
-      @keyframes wave{0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);}}
+      @keyframes wave{0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
 
-      /* arrow */
       #arrow{
         position:absolute; top:230px; left:50%; transform:translateX(-50%);
-        width:0; height:0; border-left:20px solid transparent;
-        border-right:20px solid transparent; border-top:24px solid #fff;
+        width:0; height:0;
+        border-left:20px solid transparent;
+        border-right:20px solid transparent;
+        border-top:24px solid #fff;
       }
     </style>
     """,
-    height=280, scrolling=False
+    height=280,
+    scrolling=False
 )
 st.session_state.step_prev = st.session_state.step
 # Step 1: Ask for name

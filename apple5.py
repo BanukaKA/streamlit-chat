@@ -246,77 +246,107 @@ input, textarea {
 components.html(
     """
     <div id="emojiWidget"
-         style="position:fixed; top:26px; left:50%;
+         style="position:fixed; top:14px; left:50%;
                 transform:translateX(-50%);
                 font-size:0; line-height:1;
                 z-index:2147483647; user-select:none;">
 
-      <!-- static frame (your SharePoint PNG/JPG) -->
-      <img id="staticFace"
-           src="https://rndesign-my.sharepoint.com/:i:/g/personal/banukaa_salefish_app/Eb4OtSDrGMZDlTUa_RoVv_cBcQEd3xyH8-y3n8F2MWyiCA?download=1"
-           width="280" height="280" style="display:block;">
+      <!-- CSS emoji -->
+      <div class="face">
+        <div class="shine"></div>
 
-      <!-- animated GIF (hidden until play time) -->
-      <img id="gifFace"
-           src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUycjcybWRtdjdsajBqNGFrZnFlMnM0bHpodXA5NDEzNnZiZjl6eGM5eiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9ZQ/UQDSBzfyiBKvgFcSTw/source.gif"
-           width="280" height="280" style="display:none;">
+        <div class="eye left"><div class="pupil"></div></div>
+        <div class="eye right"><div class="pupil"></div></div>
+
+        <div class="mouth"></div>
+      </div>
 
       <!-- waving hand -->
       <span id="hand1"
-            style="position:absolute; left:-125px; top:56px; font-size:144px;">✋</span>
+            style="position:absolute; left:-120px; top:44px; font-size:112px;">✋</span>
 
-      <!-- down arrow -->
+      <!-- arrow -->
       <span id="arrow"></span>
     </div>
 
     <style>
+      /* ─── FACE ─── */
+      .face{
+        position:relative;
+        width:220px; height:220px;
+        border:2px solid #000;
+        border-radius:50%;
+        background:radial-gradient(circle at 30% 30%,
+                                   #FFBE34 0%, #F4B22B 50%, #E9A226 75%, #C88B18 100%);
+        box-shadow:0 9px 14px rgba(0,0,0,.25);
+        overflow:hidden;
+      }
+      .shine{
+        position:absolute; top:12px; left:26px;
+        width:76px; height:76px;
+        background:radial-gradient(circle at 40% 40%,
+                                   rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 70%);
+        border-radius:50%;
+      }
+
+      /* ─── EYES ─── */
+      .eye{
+        position:absolute; top:68px;
+        width:46px; height:46px;
+        background:#fff;
+        border:2px solid #000;
+        border-radius:50%;
+        animation:blink 5s infinite;          /* every 5 s */
+      }
+      .eye.left  { left:46px; }
+      .eye.right { right:46px; }
+
+      .pupil{
+        position:absolute; top:12px; left:12px;
+        width:20px; height:20px; background:#000; border-radius:50%;
+      }
+      .pupil::after{
+        content:''; position:absolute; top:3px; left:5px;
+        width:6px; height:6px; background:rgba(255,255,255,.85); border-radius:50%;
+      }
+
+      @keyframes blink{
+        0%,4%,100% {transform:scaleY(1);}
+        5%         {transform:scaleY(0.08);}
+        6%         {transform:scaleY(1);}
+      }
+
+      /* ─── MOUTH ─── */
+      .mouth{
+        position:absolute; bottom:48px; left:50%;
+        width:90px; height:38px;
+        border-bottom:8px solid #000;
+        border-radius:0 0 40px 40px;
+        transform:translateX(-50%);
+        animation:mouthAnim 6s ease-in-out infinite;  /* every 6 s */
+      }
+      @keyframes mouthAnim{
+        0%,100% {transform:translateX(-50%) translateY(0) scaleX(1);}
+        50%     {transform:translateX(-50%) translateY(2px) scaleX(1.05);} /* subtle */
+      }
+
+      /* ─── HAND & ARROW ─── */
       @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
       #hand1{animation:wave 3s ease-in-out infinite;}
 
       #arrow{
-        position:absolute; top:260px; left:50%;
-        transform:translateX(-50%);
+        position:absolute; top:230px;
+        left:50%; transform:translateX(-50%);
         width:0; height:0;
-        border-left:24px solid transparent;
-        border-right:24px solid transparent;
-        border-top:28px solid #ffffff;
+        border-left:20px solid transparent;
+        border-right:20px solid transparent;
+        border-top:24px solid #ffffff;
       }
     </style>
-
-    <script>
-      const staticFace = document.getElementById("staticFace");
-      const gifFace    = document.getElementById("gifFace");
-
-      const freezeMs = 7000;   // 5 s still
-      const playMs   = 2000;   // 1 s animate
-      const cycleMs  = freezeMs + playMs;
-
-      /* hand variety, optional */
-      const hand     = document.getElementById("hand1");
-      const hands    = ["✋"];
-      setInterval(()=> hand.textContent = hands[Math.floor(Math.random()*hands.length)], 3000);
-
-      const gifBase  = gifFace.src.split("?")[0];  // base URL to bust cache
-
-      function playGifOnce(){
-        gifFace.style.display = "block";           // show GIF
-        staticFace.style.display = "none";
-        gifFace.src = gifBase + "?t=" + Date.now(); // restart frames
-
-        setTimeout(()=>{                           // after 1 s
-          gifFace.style.display   = "none";
-          staticFace.style.display = "block";
-        }, playMs);
-      }
-
-      /* initial schedule: first play after 5 s, then repeat every 6 s */
-      setTimeout(playGifOnce, freezeMs);
-      setInterval(playGifOnce, cycleMs);
-    </script>
     """,
-    height=313,
+    height=280,
     scrolling=False
-    )
+)
 st.session_state.step_prev = st.session_state.step
 # Step 1: Ask for name
 if not st.session_state.typed_welcome:

@@ -246,7 +246,7 @@ input, textarea {
 components.html(
     """
     <div id="emojiWidget"
-         style="position:fixed; top:30px; left:50%;
+         style="position:fixed; top:26px; left:50%;
                 transform:translateX(-50%);
                 font-size:0; line-height:1;
                 z-index:2147483647; user-select:none;">
@@ -254,16 +254,16 @@ components.html(
       <!-- static frame (your SharePoint PNG/JPG) -->
       <img id="staticFace"
            src="https://rndesign-my.sharepoint.com/:i:/g/personal/banukaa_salefish_app/Eb4OtSDrGMZDlTUa_RoVv_cBcQEd3xyH8-y3n8F2MWyiCA?download=1"
-           width="240" height="240" style="display:block;">
+           width="280" height="280" style="display:block;">
 
       <!-- animated GIF (hidden until play time) -->
       <img id="gifFace"
            src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUycjcybWRtdjdsajBqNGFrZnFlMnM0bHpodXA5NDEzNnZiZjl6eGM5eiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9ZQ/UQDSBzfyiBKvgFcSTw/source.gif"
-           width="240" height="240" style="display:none;">
+           width="280" height="280" style="display:none;">
 
       <!-- waving hand -->
       <span id="hand1"
-            style="position:absolute; left:-125px; top:46px; font-size:144px;">✋</span>
+            style="position:absolute; left:-125px; top:56px; font-size:144px;">✋</span>
 
       <!-- down arrow -->
       <span id="arrow"></span>
@@ -279,7 +279,7 @@ components.html(
         width:0; height:0;
         border-left:24px solid transparent;
         border-right:24px solid transparent;
-        border-top:24px solid #ffffff;
+        border-top:28px solid #ffffff;
       }
     </style>
 

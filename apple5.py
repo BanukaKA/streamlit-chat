@@ -243,71 +243,79 @@ input, textarea {
 </style>
 """, unsafe_allow_html=True)
 
-if st.session_state.step_prev != st.session_state.step:
-    components.html(
-        """
-        <div id="emojiWidget"
-            style="position:fixed; top:30px; left:50%;
-                    transform:translateX(-50%);
-                    font-size:240px; line-height:1;
-                    z-index:2147483647; user-select:none;">
+components.html(
+    """
+    <div id="emojiWidget"
+         style="position:fixed; top:30px; left:50%;
+                transform:translateX(-50%);
+                font-size:0; line-height:1;
+                z-index:2147483647; user-select:none;">
 
-        <!-- face -->
-        <span id="face">🙂</span>
+      <!-- static frame (your SharePoint PNG/JPG) -->
+      <img id="staticFace"
+           src="https://rndesign-my.sharepoint.com/:i:/g/personal/banukaa_salefish_app/Eb4OtSDrGMZDlTUa_RoVv_cBcQEd3xyH8-y3n8F2MWyiCA?download=1"
+           width="240" height="240" style="display:block;">
 
-        <!-- waving hand -->
-        <span id="hand1"
-                style="position:absolute; left:-125px; top:46px; font-size:144px;">✋</span>
+      <!-- animated GIF (hidden until play time) -->
+      <img id="gifFace"
+           src="https://media0.giphy.com/media/v1.Y2lkPTZjMDliOTUycjcybWRtdjdsajBqNGFrZnFlMnM0bHpodXA5NDEzNnZiZjl6eGM5eiZlcD12MV9zdGlja2Vyc19zZWFyY2gmY3Q9ZQ/UQDSBzfyiBKvgFcSTw/source.gif"
+           width="240" height="240" style="display:none;">
 
-        <!-- little arrow below -->
-        <span id="arrow"></span>
-        </div>
+      <!-- waving hand -->
+      <span id="hand1"
+            style="position:absolute; left:-125px; top:46px; font-size:144px;">✋</span>
 
-        <style>
-        /* hand wave */
-        @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
-        #hand1{animation:wave 3s ease-in-out infinite;}
+      <!-- down arrow -->
+      <span id="arrow"></span>
+    </div>
 
-        /* arrow */
-        #arrow{
-            position:absolute;
-            top:260px;
-            left:50%; transform:translateX(-50%);
-            width:0; height:0;
-            border-left:24px solid transparent;
-            border-right:24px solid transparent;
-            border-top:24px solid #ffffff;
-        }
-        </style>
+    <style>
+      @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
+      #hand1{animation:wave 3s ease-in-out infinite;}
 
-        <script>
-        /* frames for talking */
-        const frames = ["🙂","😀"];          // resting, open‑mouth
-        const hands  = ["✋"];    // optional shuffle
+      #arrow{
+        position:absolute; top:260px; left:50%;
+        transform:translateX(-50%);
+        width:0; height:0;
+        border-left:24px solid transparent;
+        border-right:24px solid transparent;
+        border-top:24px solid #ffffff;
+      }
+    </style>
 
-        const face  = document.getElementById("face");
-        const hand  = document.getElementById("hand1");
+    <script>
+      const staticFace = document.getElementById("staticFace");
+      const gifFace    = document.getElementById("gifFace");
 
-        /* ---- 3‑second talking burst ---- */
-        function talkFor3s(){
-            let flip = 0;
-            const swap = setInterval(()=>{
-            face.textContent = frames[flip ^= 1];    // flip 0/1
-            hand.textContent = hands[Math.floor(Math.random()*hands.length)];
-            }, 150);
+      const freezeMs = 5000;   // 5 s still
+      const playMs   = 1000;   // 1 s animate
+      const cycleMs  = freezeMs + playMs;
 
-            setTimeout(()=>{
-            clearInterval(swap);
-            face.textContent = frames[0];            // back to resting 🙂
-            }, 1300);                                  // stop after 3 s
-        }
+      /* hand variety, optional */
+      const hand     = document.getElementById("hand1");
+      const hands    = ["✋"];
+      setInterval(()=> hand.textContent = hands[Math.floor(Math.random()*hands.length)], 3000);
 
-        /* start immediately on load (each rerun) */
-        talkFor3s();
-        </script>
-        """,
-        height=313,
-        scrolling=False
+      const gifBase  = gifFace.src.split("?")[0];  // base URL to bust cache
+
+      function playGifOnce(){
+        gifFace.style.display = "block";           // show GIF
+        staticFace.style.display = "none";
+        gifFace.src = gifBase + "?t=" + Date.now(); // restart frames
+
+        setTimeout(()=>{                           // after 1 s
+          gifFace.style.display   = "none";
+          staticFace.style.display = "block";
+        }, playMs);
+      }
+
+      /* initial schedule: first play after 5 s, then repeat every 6 s */
+      setTimeout(playGifOnce, freezeMs);
+      setInterval(playGifOnce, cycleMs);
+    </script>
+    """,
+    height=313,
+    scrolling=False
     )
 st.session_state.step_prev = st.session_state.step
 # Step 1: Ask for name

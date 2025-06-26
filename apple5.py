@@ -287,8 +287,8 @@ components.html(
       const staticFace = document.getElementById("staticFace");
       const gifFace    = document.getElementById("gifFace");
 
-      const freezeMs = 5000;   // 5 s still
-      const playMs   = 1000;   // 1 s animate
+      const freezeMs = 7000;   // 5 s still
+      const playMs   = 2000;   // 1 s animate
       const cycleMs  = freezeMs + playMs;
 
       /* hand variety, optional */

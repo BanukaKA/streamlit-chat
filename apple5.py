@@ -251,7 +251,6 @@ components.html(
                 font-size:0; line-height:1;
                 z-index:2147483647; user-select:none;">
 
-      <!-- CSS emoji -->
       <div class="face">
         <div class="shine"></div>
 
@@ -261,91 +260,62 @@ components.html(
         <div class="mouth"></div>
       </div>
 
-      <!-- waving hand -->
       <span id="hand1"
             style="position:absolute; left:-120px; top:44px; font-size:112px;">✋</span>
 
-      <!-- arrow -->
       <span id="arrow"></span>
     </div>
 
     <style>
-      /* ─── FACE ─── */
+      /* face & glare */
       .face{
-        position:relative;
-        width:220px; height:220px;
-        border:2px solid #000;
-        border-radius:50%;
-        background:radial-gradient(circle at 30% 30%,
-                                   #FFBE34 0%, #F4B22B 50%, #E9A226 75%, #C88B18 100%);
-        box-shadow:0 9px 14px rgba(0,0,0,.25);
-        overflow:hidden;
+        width:220px; height:220px; border:2px solid #000; border-radius:50%;
+        background:radial-gradient(circle at 30% 30%, #FFBE34 0%, #F4B22B 50%, #E9A226 75%, #C88B18 100%);
+        box-shadow:0 9px 14px rgba(0,0,0,.25); position:relative; overflow:hidden;
       }
       .shine{
         position:absolute; top:12px; left:26px;
-        width:76px; height:76px;
-        background:radial-gradient(circle at 40% 40%,
-                                   rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 70%);
-        border-radius:50%;
+        width:76px; height:76px; border-radius:50%;
+        background:radial-gradient(circle at 40% 40%, rgba(255,255,255,.85) 0%, rgba(255,255,255,0) 70%);
       }
 
-      /* ─── EYES ─── */
+      /* eyes moved 2 px up, thin outline, blink every 5 s */
       .eye{
-        position:absolute; top:68px;
-        width:46px; height:46px;
-        background:#fff;
-        border:2px solid #000;
-        border-radius:50%;
-        animation:blink 5s infinite;          /* every 5 s */
+        position:absolute; top:66px;  /* was 68 */
+        width:46px; height:46px; border:2px solid #000; border-radius:50%; background:#fff;
+        animation:blink 5s infinite;
       }
-      .eye.left  { left:46px; }
-      .eye.right { right:46px; }
+      .eye.left{ left:46px;}  .eye.right{ right:46px;}
+      .pupil{ position:absolute; top:12px; left:12px; width:20px; height:20px; border-radius:50%; background:#000;}
+      .pupil::after{content:''; position:absolute; top:3px; left:5px; width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,.85);}
+      @keyframes blink{0%,4%,100%{transform:scaleY(1);}5%{transform:scaleY(.08);}6%{transform:scaleY(1);}}
 
-      .pupil{
-        position:absolute; top:12px; left:12px;
-        width:20px; height:20px; background:#000; border-radius:50%;
-      }
-      .pupil::after{
-        content:''; position:absolute; top:3px; left:5px;
-        width:6px; height:6px; background:rgba(255,255,255,.85); border-radius:50%;
-      }
-
-      @keyframes blink{
-        0%,4%,100% {transform:scaleY(1);}
-        5%         {transform:scaleY(0.08);}
-        6%         {transform:scaleY(1);}
-      }
-
-      /* ─── MOUTH ─── */
+      /* mouth narrower (82 px), 2 px lower, tiny widen (1→1.02) every 6 s */
       .mouth{
-        position:absolute; bottom:48px; left:50%;
-        width:90px; height:38px;
-        border-bottom:8px solid #000;
-        border-radius:0 0 40px 40px;
+        position:absolute; bottom:46px;  /* was 48 */
+        left:50%; width:82px; height:36px;         /* was 90×38 */
+        border-bottom:8px solid #000; border-radius:0 0 38px 38px;
         transform:translateX(-50%);
-        animation:mouthAnim 6s ease-in-out infinite;  /* every 6 s */
+        animation:mouth 6s ease-in-out infinite;
       }
-      @keyframes mouthAnim{
-        0%,100% {transform:translateX(-50%) translateY(0) scaleX(1);}
-        50%     {transform:translateX(-50%) translateY(2px) scaleX(1.05);} /* subtle */
+      @keyframes mouth{
+        0%,100%{transform:translateX(-50%) translateY(0) scaleX(1);}
+        50%    {transform:translateX(-50%) translateY(2px) scaleX(1.02);}
       }
 
-      /* ─── HAND & ARROW ─── */
-      @keyframes wave {0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);} }
+      /* waving hand */
       #hand1{animation:wave 3s ease-in-out infinite;}
+      @keyframes wave{0%,100%{transform:rotate(0);}50%{transform:rotate(24deg);}}
 
+      /* arrow */
       #arrow{
-        position:absolute; top:230px;
-        left:50%; transform:translateX(-50%);
-        width:0; height:0;
-        border-left:20px solid transparent;
-        border-right:20px solid transparent;
-        border-top:24px solid #ffffff;
+        position:absolute; top:230px; left:50%; transform:translateX(-50%);
+        width:0; height:0; border-left:20px solid transparent;
+        border-right:20px solid transparent; border-top:24px solid #fff;
       }
     </style>
     """,
-    height=280,
-    scrolling=False
+    height=280, scrolling=False
 )
 st.session_state.step_prev = st.session_state.step
 # Step 1: Ask for name

@@ -251,20 +251,6 @@ components.html(
                 font-size:0; line-height:1;
                 z-index:2147483647; user-select:none;">
 
-      <div class="face">
-        <div class="shine"></div>
-
-        <!-- eyes now positioned wider -->
-        <div class="eye left"></div>
-        <div class="eye right"></div>
-
-        <div class="mouth"></div>
-      </div>
-
-      <span id="hand1"
-            style="position:absolute; left:-120px; top:44px; font-size:112px;">✋</span>
-
-      <span id="arrow"></span>
     </div>
 
     <style>
@@ -327,7 +313,7 @@ components.html(
       }
     </style>
     """,
-    height=280,
+    height=120,
     scrolling=False
 )
 st.session_state.step_prev = st.session_state.step

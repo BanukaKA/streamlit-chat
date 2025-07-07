@@ -320,7 +320,7 @@ st.session_state.step_prev = st.session_state.step
 # Step 1: Ask for name
 if not st.session_state.typed_welcome:
     
-    typewriter_effect("Hi, And welcome to the Home Finder. What is your name ?", speed=0.02)
+    typewriter_effect("Hi, And welcome to the New Home Finder. What is your name ?", speed=0.02)
     st.session_state.typed_welcome = True
 
 if st.session_state.step == 'ask_name':
@@ -336,7 +336,7 @@ if st.session_state.step == 'ask_name':
 
 # Step 2: Ask for email
 elif st.session_state.step == 'ask_email':
-    st.markdown("### Now can you tell me which areas you are primarily looking to buy in?")
+    st.markdown("### To get started what area are you considering for your new home?")
     email = st.text_input("Target Location:")
     if st.button("Next", key="email_submit"):
         if email.strip():
@@ -349,7 +349,7 @@ elif st.session_state.step == 'ask_email':
             st.warning("Location cannot be empty.")
 # Step 2: Ask for email
 elif st.session_state.step == 'ask_more':
-    st.markdown("### And lastly, your expected price range to narrow things down a bit more?")
+    st.markdown("### And lastly, what price point are your looking for?")
     more = st.text_input("Price Expectation:")
     if st.button("Next", key="email_submit"):
         if more.strip():
@@ -374,6 +374,6 @@ elif st.session_state.step == 'ask_more':
 
 # Step 3: Chat interface
 else:
-   typewriter_effect("Thank You. We will find some options for you and get back to you.", speed=0.02)
+   typewriter_effect("Thank you for your submission. I will send properties that match your criteria to your email. If you have any questions please contact our team at welcome@salefish.app", speed=0.02)
 
 

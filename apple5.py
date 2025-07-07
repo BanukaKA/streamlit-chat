@@ -10,6 +10,15 @@ import random   # (only if you need randomness elsewhere)
 # Configure the page
 st.set_page_config(page_title="Home Finder Chatbot", page_icon="🏡")
 
+st.markdown(
+    """
+    <!-- Start of HubSpot Embed Code -->
+    <script type="text/javascript" id="hs-script-loader" async defer src="//js.hs-scripts.com/46599670.js"></script>
+    <!-- End of HubSpot Embed Code -->
+    """,
+    unsafe_allow_html=True
+)
+
 # Set OpenAI API key & Tracking URL (ensure you have added OPENAI_API_KEY and TRACKING_URL to Streamlit secrets)
 key = st.secrets["GPT_KEY"]
 TRACKING_URL = "https://prod-135.westus.logic.azure.com:443/workflows/de75db0162a241b2a0a23ff81b995b27/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=BGPHxgrgadFKgbmtdF0SWXmhkcLtcz9bAiyzUKGBkYw"  # e.g., a webhook endpoint to collect user info
